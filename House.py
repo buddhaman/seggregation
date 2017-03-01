@@ -7,4 +7,8 @@ class House(object):
            person.house = self
         self.x = x
         self.y = y
-        
+
+    def __str__(self):
+        return str((self.x, self.y))
+
+
