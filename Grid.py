@@ -22,6 +22,10 @@ class Grid(object):
         for n in range(len(typeNums)):
             for i in range(typeNums[n]):
                 self.personList.append(per.Person(n+1))
+                
+        #shuffle personlist for total randomness
+        rnd.shuffle(self.personList)
+        
         for person in self.personList:
             self.grid.append(hs.House(person))
 
@@ -43,26 +47,42 @@ class Grid(object):
 
     def getKindGrid(self, grid):
         return [h.person.kind if h.person!=None else 0 for h in grid]
-
+    
+    def getTotalHappiness(self):
+        happySum = 0
+        for person in self.personList:
+            x=person.getX()
+            y=person.getY()
+            
+            happySum+=self.getHappy(x, y, person.kind)
+        return happySum
+    
     def step(self):
          #add to list of previous grid states
         self.lastGrids.insert(0, list(self.getKindGrid(self.grid)))
         if(len(self.lastGrids) > self.nBack):
             del self.lastGrids[-1]
-            
+        
+        stateChanged = False;
+        
         self.atStep+=1
         for person in self.personList:
             x, y = person.getX(), person.getY()
             happy = self.getHappy(x, y, person.kind)
+            
             #if satisfied, do nothing
             if happy >= self.happyThreshold:
                 continue
+            
             #remove from house and find new one. If none found, move back
             self.removePersonFromHouse(person)
             newHouse = self.findNewHouse(x, y, person.kind, happy)
             if(newHouse==None):
                 newHouse = self.getHouseAt(x, y)
+            else:
+                stateChanged = True
             self.addPersonToHouse(person, newHouse)
+        return stateChanged
             
     def getHouseAt(self, x, y):
         return self.grid[x+y*self.width]
