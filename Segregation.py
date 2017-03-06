@@ -28,24 +28,27 @@ def experiment(n, happyThreshold=1./3.):
     totalHappiness = []
     
     for i in range(n):
-        grid = grd.Grid(10,10, typeNums=[30,30], happyThreshold=happyThreshold)
-        step = 0
+        grid = grd.Grid(8,8, typeNums=[20,20], 
+                        happyThreshold=happyThreshold, randomHouse=False)
         
-        while grid.step():
+        step = 0
+        maxSteps = 100
+        while grid.step() and step < maxSteps:
             step=step+1
         
         nSteps.append(step)
-        totalHappiness.append(grid.getTotalHappiness())
+        totalHappiness.append(grid.getTotalHappiness()/len(grid.personList))
     return nSteps, totalHappiness
 
 def avg(ls):
     return float(sum(ls))/len(ls)
 
 #plot total happiness against happyThreshold
-def happyThresholdPlot(nDatapoints, iterations, notifyEvery=10):
+def thresholdPlot(nDatapoints, iterations, notifyEvery=5):
     
     totalHappy = []
     happyThreshold = []
+    avgSteps = []
     
     for n in range(nDatapoints):
         t = float(n)/nDatapoints
@@ -53,12 +56,15 @@ def happyThresholdPlot(nDatapoints, iterations, notifyEvery=10):
                          
         nSteps, totalHappiness = experiment(iterations, happyThreshold=t)
         totalHappy.append(avg(totalHappiness))
+        avgSteps.append(avg(nSteps))
+        
         if n%notifyEvery==0:
             print '%d of %d experiments done'%(n, nDatapoints)
-            
     
-    plt.plot(happyThreshold, totalHappy)
-    plt.show()
-        
-happyThresholdPlot(50, 200)
+    return happyThreshold, totalHappy, avgSteps
+
+happyThreshold, happy, avgSteps = thresholdPlot(150, 1000, notifyEvery=1)
+
+plt.plot(happyThreshold, happy)
+plt.show()
 

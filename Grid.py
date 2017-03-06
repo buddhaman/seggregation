@@ -5,7 +5,7 @@ import itertools as itr
 
 class Grid(object):
     
-    def __init__(self, width, height, typeNums=[20,20], nBack=1, happyThreshold=.3333):
+    def __init__(self, width, height, typeNums=[20,20], nBack=1, happyThreshold=.3333, randomHouse = False):
         self.width = width
         self.height = height
         #number of types (each {index+1} in list is type, list stores amount of each type)
@@ -18,6 +18,8 @@ class Grid(object):
         self.nBack = nBack
         self.atStep = 0
         self.happyThreshold = happyThreshold
+        self.randomHouse = randomHouse
+        self.order = 1
        
         for n in range(len(typeNums)):
             for i in range(typeNums[n]):
@@ -76,7 +78,12 @@ class Grid(object):
             
             #remove from house and find new one. If none found, move back
             self.removePersonFromHouse(person)
-            newHouse = self.findNewHouse(x, y, person.kind, happy)
+            
+            newHouse = None
+            if(self.randomHouse):
+                newHouse = self.findRandomHouse(x, y)
+            else:
+                newHouse = self.findNewHouse(x, y, person.kind, happy)
             if(newHouse==None):
                 newHouse = self.getHouseAt(x, y)
             else:
@@ -86,7 +93,12 @@ class Grid(object):
             
     def getHouseAt(self, x, y):
         return self.grid[x+y*self.width]
-            
+    
+    #return random house, including own house
+    def findRandomHouse(self, x, y):
+        return self.emptyHouseList[rnd.randint(0,len(self.emptyHouseList)-1)]
+        
+    
     #call after removing person from own house. Own house shouldn't count
     #new house should be better than threshold (person current happieness). If no house found. return house
     #at (x,y)
@@ -140,8 +152,9 @@ class Grid(object):
     #get happyness at (x,y). Excludes (x,y)
     def getHappy(self, x, y, kind):
         #order 2 neighbourhoord
-        (x1, y1) = max(0, x-1), max(0, y-1)
-        (x2, y2) = min(x+1, self.width-1), min(y+1, self.height-1)
+        order = self.order
+        (x1, y1) = max(0, x-order), max(0, y-order)
+        (x2, y2) = min(x+order, self.width-1), min(y+order, self.height-1)
         #number of gridpoints
         n = 0
         happy = 0
