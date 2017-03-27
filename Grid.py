@@ -10,7 +10,7 @@ class Grid(object):
         self.height = height
         #number of types (each {index+1} in list is type, list stores amount of each type)
         self.typeNums = typeNums
-         #grid is single array to make shuffling easier
+        #grid is single array to make shuffling easier
         self.grid = []
         self.personList = []
         self.emptyHouseList = []
@@ -20,10 +20,11 @@ class Grid(object):
         self.happyThreshold = happyThreshold
         self.randomHouse = randomHouse
         self.order = 1
+        self.nTypes = len(typeNums)
        
-        for n in range(len(typeNums)):
+        for n in range(self.nTypes):
             for i in range(typeNums[n]):
-                self.personList.append(per.Person(n+1))
+                self.personList.append(per.Person(n+1, changeProb=1))
                 
         #shuffle personlist for total randomness
         rnd.shuffle(self.personList)
@@ -71,6 +72,10 @@ class Grid(object):
         for person in self.personList:
             x, y = person.getX(), person.getY()
             happy = self.getHappy(x, y, person.kind)
+            
+            if rnd.uniform(0,1) < person.changeProb*(1-happy):
+                person.kind = rnd.randint(1, self.nTypes)
+                stateChanged = True
             
             #if satisfied, do nothing
             if happy >= self.happyThreshold:

@@ -3,9 +3,7 @@ import Grid as grd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 #run 500 simulations
-
 
 def consoleTest(grid, printGrid, maxIterations):
     if printGrid:
@@ -28,8 +26,8 @@ def experiment(n, happyThreshold=1./3.):
     totalHappiness = []
     
     for i in range(n):
-        grid = grd.Grid(8,8, typeNums=[20,20], 
-                        happyThreshold=happyThreshold, randomHouse=False)
+        grid = grd.Grid(8,8, typeNums=[30,30], 
+                        happyThreshold=happyThreshold, randomHouse=True)
         
         step = 0
         maxSteps = 100
@@ -53,7 +51,7 @@ def thresholdPlot(nDatapoints, iterations, notifyEvery=5):
     for n in range(nDatapoints):
         t = float(n)/nDatapoints
         happyThreshold.append(t)
-                         
+        
         nSteps, totalHappiness = experiment(iterations, happyThreshold=t)
         totalHappy.append(avg(totalHappiness))
         avgSteps.append(avg(nSteps))
@@ -63,8 +61,9 @@ def thresholdPlot(nDatapoints, iterations, notifyEvery=5):
     
     return happyThreshold, totalHappy, avgSteps
 
-happyThreshold, happy, avgSteps = thresholdPlot(150, 1000, notifyEvery=1)
+consoleTest(grd.Grid(8,8, typeNums=[20,20]), True, 1000)
 
-plt.plot(happyThreshold, happy)
-plt.show()
-
+#Experiment for graphs
+happyThreshold, happy, avgSteps = thresholdPlot(20,300, notifyEvery=1)
+plt.plot(happyThreshold, avgSteps)
+#plt.show()
