@@ -19,7 +19,7 @@ class Grid(object):
         self.atStep = 0
         self.happyThreshold = happyThreshold
         self.randomHouse = randomHouse
-        self.order = 1
+        self.order = 2
        
         for n in range(len(typeNums)):
             for i in range(typeNums[n]):

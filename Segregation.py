@@ -2,7 +2,7 @@ import random as rnd
 import Grid as grd
 import numpy as np
 import matplotlib.pyplot as plt
-
+import csv
 
 #run 500 simulations
 
@@ -63,8 +63,7 @@ def thresholdPlot(nDatapoints, iterations, notifyEvery=5):
     
     return happyThreshold, totalHappy, avgSteps
 
-happyThreshold, happy, avgSteps = thresholdPlot(150, 1000, notifyEvery=1)
-
-plt.plot(happyThreshold, happy)
-plt.show()
-
+Threshold, happy, Nsteps = thresholdPlot(50, 200, notifyEvery = 5)
+with open('Nstepsrulemodel', 'wb') as myfile:
+    wr = csv.writer(myfile)
+    wr.writerow(Nsteps)
