@@ -5,7 +5,7 @@ import itertools as itr
 
 class Grid(object):
     
-    def __init__(self, width, height, typeNums=[20,20], nBack=1, happyThreshold=.3333, randomHouse = False):
+    def __init__(self, width, height, typeNums=[20,20], happyThreshold=.3333, randomHouse = False):
         self.width = width
         self.height = height
         #number of types (each {index+1} in list is type, list stores amount of each type)
@@ -14,8 +14,6 @@ class Grid(object):
         self.grid = []
         self.personList = []
         self.emptyHouseList = []
-        self.lastGrids = []
-        self.nBack = nBack
         self.atStep = 0
         self.happyThreshold = happyThreshold
         self.randomHouse = randomHouse
@@ -24,7 +22,7 @@ class Grid(object):
        
         for n in range(self.nTypes):
             for i in range(typeNums[n]):
-                self.personList.append(per.Person(n+1, changeProb=1))
+                self.personList.append(per.Person(n+1, changeProb=0))
                 
         #shuffle personlist for total randomness
         rnd.shuffle(self.personList)
@@ -61,10 +59,6 @@ class Grid(object):
         return happySum
     
     def step(self):
-         #add to list of previous grid states
-        self.lastGrids.insert(0, list(self.getKindGrid(self.grid)))
-        if(len(self.lastGrids) > self.nBack):
-            del self.lastGrids[-1]
         
         stateChanged = False;
         
@@ -144,15 +138,6 @@ class Grid(object):
             return 0
         else:
             return person.kind
-
-    def isStable(self):
-        if(len(self.lastGrids)<self.nBack):
-            return False
-        grid = self.getKindGrid(self.grid)
-        for g in self.lastGrids:
-            if g!=grid:
-                return False
-        return True
         
     #get happyness at (x,y). Excludes (x,y)
     def getHappy(self, x, y, kind):
@@ -175,7 +160,8 @@ class Grid(object):
         if n==0:
             return 1
         else:
-            return float(happy)/n
+            h=float(happy)/n
+            return h
     
     def __str__(self):
         string = ""
