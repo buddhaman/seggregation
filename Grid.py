@@ -3,6 +3,7 @@ import random as rnd
 import House as hs
 import itertools as itr
 
+
 class Grid(object):
     
     def __init__(self, width, height, typeNums=[20,20], happyThreshold=.3333, randomHouse = False):

@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import scipy.stats.mstats as stats
+from scipy.optimize import curve_fit
+from fractions import gcd
 
 #run 500 simulations
 
@@ -12,7 +14,7 @@ def consoleTest(grid, printGrid, maxIterations):
         print grid
     
     stp = 0
-    stateChanged = True    
+    stateChanged = True
 
     while(stateChanged and stp<maxIterations):
         stateChanged = grid.step()
@@ -87,18 +89,27 @@ def logisticregr(x, y, epsilon=0.00001):
     plt.title('f(x)=1/(2+2exp( %.2fx %s %.2f ))+(1/2)'%(-slope, ['+','-'][intercept>0],
     abs(intercept)))
     plt.plot(x, regression(x, intercept, slope)*(mmax-mmin)+mmin)
+   
+def drawLines(n, ymin, ymax):
+    s = {(0,8)}
+    for i in range(1,n+1):
+        for j in range(1,i+1):
+            d = gcd(j,i)
+            s.add((j/d, i/d))
+    for line in s:
+        x = float(line[0])/line[1]
+        plt.text(x,0.1, r'$\frac{%d}{%d}$'%(line[0],line[1]), fontsize=15)
+        plt.plot((x, x), (ymin,ymax), 'r-')
 
 #Experiment for graphs
-happyThreshold, happy, avgSteps = thresholdPlot(40,50, notifyEvery=5)
+happyThreshold, happy, avgSteps = thresholdPlot(30,10, notifyEvery=5)
 plt.plot(happyThreshold, avgSteps)
 logisticregr(happyThreshold, avgSteps)
-
+drawLines(12,0,5)
 plt.show()
 
-nSteps1, happiness1 = experiment(1000, happyThreshold=1.0/3)
-nSteps2, happiness2 = experiment(1000, happyThreshold=1.0/3, w=10, h=10)
-results = stats.ttest_ind(happiness1, happiness2)
-print results
-
-
+#nSteps1, happiness1 = experiment(1000, happyThreshold=1.0/3)
+#nSteps2, happiness2 = experiment(1000, happyThreshold=1.0/3, w=10, h=10)
+#results = stats.ttest_ind(happiness1, happiness2)
+#print results
 
