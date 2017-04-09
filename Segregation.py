@@ -136,10 +136,16 @@ def drawFlatGraph(x, y):
         xx.append(x[i+1])
         yy.append(y[i])
     plt.plot(xx, yy)
-    plt.show()
-        
-    
 
+def func(x, a, M, b1, b2):
+    return a+M/(1+np.exp(-(b1*x+b2)))
+
+def fitcurve(x, y, f):
+    popt, pcov = curve_fit(f, np.array(x), np.array(y))
+    plt.plot(x, f(x, *popt), 'r-', label='fit')
+    print popt, pcov
+    
+        
 #Experiment for graphs
 #happyThreshold, happy, avgSteps = thresholdPlot(20,30, notifyEvery=5)
 #plt.plot(happyThreshold, avgSteps)
@@ -147,13 +153,14 @@ def drawFlatGraph(x, y):
 #drawLines(8,0,5)
 #plt.show()
 
-happyThreshold, happy, avgSteps = atThreshold(80, order=1)
+happyThreshold, happy, avgSteps = atThreshold(40, order=1)
 drawFlatGraph(happyThreshold, happy)
-drawLines(8, 0.5, 1)
+fitcurve(np.array(happyThreshold), np.array(happy), func)
+plt.show()
 
-
-#grid = prc.GridPrice(15,15, typeNums=[40,40,40,40])
-#consoleTest(grid, True, 100)
+#
+#grid = prc.GridPrice(8,8, typeNums=[20,20])
+#consoleTest(grid, True, 2)
 
 
 #nSteps1, happiness1 = experiment(1000, happyThreshold=1.0/3)

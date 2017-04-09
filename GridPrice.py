@@ -4,8 +4,8 @@ import random as rnd
 
 class GridPrice(Grid):
     
-    def __init__(self, width, height, typeNums):
-        Grid.__init__(self, width, height, typeNums=typeNums)
+    def __init__(self, width, height, typeNums, order=1, randomMoveProb=0.01):
+        Grid.__init__(self, width, height, typeNums=typeNums, order=order)
         
         #houses cost (pricefactor) * more than income
         self.priceFactor = 10
@@ -18,6 +18,7 @@ class GridPrice(Grid):
         self.populateGrid()
         self.initHouseCoordinates()
         self.initHousePrices()
+        self.randomMoveProb = randomMoveProb
     
     def initHousePrices(self):
          for house in self.grid:
@@ -41,7 +42,7 @@ class GridPrice(Grid):
             if expectedPrice > house.price:
                 house.price+=1
             elif expectedPrice < house.price:
-                house.price+=1
+                house.price-=1
                 
         #check person income against house price
         #if less : House price=person income * factor
@@ -52,11 +53,11 @@ class GridPrice(Grid):
             if(house.price > worth):
                 house.price = worth
             roundedHousePrice = self.priceFactor*np.round(int(house.price)/int(self.priceFactor))
-            if roundedHousePrice < worth:
+            if roundedHousePrice < worth or rnd.uniform(0,1) < self.randomMoveProb:
                 x, y = person.getX(), person.getY()
                 #move
                 self.removePersonFromHouse(person)
-                newHouse = self.findNewHouse(x, y, person.kind)
+                newHouse = self.findNewHouse(x, y, person.kind,roundedHousePrice)
                 if newHouse==None:
                     newHouse = house
                 self.addPersonToHouse(person, newHouse)
@@ -67,13 +68,13 @@ class GridPrice(Grid):
     #call after removing person from own house. Own house shouldn't count
     #new house should be better than threshold (person current happiness). If no house found. return house
     #at (x,y)
-    def findNewHouse(self, x, y, kind):
+    def findNewHouse(self, x, y, kind, housePrice):
         candidates = []
         for house in self.emptyHouseList:
             if(house.x==x and house.y==y):
                 continue
             price = house.price
-            if price > kind*self.priceFactor and price < (kind+1)*self.priceFactor:
+            if price > housePrice and price < (kind+1)*self.priceFactor:
                 candidates.append(house)
         #choose house with minimal distance
         mindst = self.width*self.width+self.height*self.height
