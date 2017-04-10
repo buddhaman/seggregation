@@ -34,7 +34,7 @@ def experiment(n, happyThreshold=1./3., randomHouse=False, w=8,h=8, order = 1):
                         randomHouse=randomHouse, order = order)
         
         step = 0
-        maxSteps = 100
+        maxSteps = 100  
         while grid.step() and step < maxSteps:
             step=step+1
         
@@ -45,7 +45,7 @@ def experiment(n, happyThreshold=1./3., randomHouse=False, w=8,h=8, order = 1):
 def avg(ls):
     return float(sum(ls))/len(ls)
 
-def atThreshold(iterations, order=1, notifyEvery=5):
+def atThreshold(iterations, order=1, notifyEvery=5, randomHouse=False):
     thresholds = getFracs((2*order+1)**2-1)
     thresholds.sort()
     happinessList = []
@@ -54,7 +54,8 @@ def atThreshold(iterations, order=1, notifyEvery=5):
     print '%d points to check'%(len(thresholds))
     for h in thresholds: 
         n+=1
-        nSteps, happiness = experiment(iterations, happyThreshold=h, order=order)
+        nSteps, happiness = experiment(iterations, happyThreshold=h,
+                                       randomHouse=randomHouse, order=order)
         happinessList.append(avg(happiness))
         avgSteps.append(avg(nSteps))
         if n%notifyEvery==0 :
@@ -62,7 +63,8 @@ def atThreshold(iterations, order=1, notifyEvery=5):
     return thresholds, happinessList, avgSteps
 
 #plot total happiness against happyThreshold
-def thresholdPlot(nDatapoints, iterations, notifyEvery=5):
+def thresholdPlot(nDatapoints, iterations, randomHouse):
+    notifyEvery=5
     totalHappy = []
     happyThreshold = []
     avgSteps = []
@@ -71,7 +73,8 @@ def thresholdPlot(nDatapoints, iterations, notifyEvery=5):
         t = float(n)/nDatapoints
         happyThreshold.append(t)
         
-        nSteps, totalHappiness = experiment(iterations, happyThreshold=t)
+        nSteps, totalHappiness = experiment(iterations, randomHouse=randomHouse,
+                                            happyThreshold=t)
         totalHappy.append(avg(totalHappiness))
         avgSteps.append(avg(nSteps))
         
@@ -92,7 +95,7 @@ def loginv(y):
 def regression(x, b0, b1):
     return 1/(1+np.exp(-(x*b1+b0)))
 
-def logisticregr(x, y, epsilon=0.00001):
+def logisticregr(ax, x, y, epsilon=0.00001):
     y=np.array(y)
     x=np.array(x)
     mmin = min(y)-epsilon
@@ -102,9 +105,9 @@ def logisticregr(x, y, epsilon=0.00001):
     invy=loginv(y)
     
     slope, intercept, r_value, p_value, std_err = stats.linregress(x,invy)
-    plt.title('f(x)=1/(2+2exp( %.2fx %s %.2f ))+(1/2)'%(-slope, ['+','-'][intercept>0],
+    ax.set_title('f(x)=1/(2+2exp( %.2fx %s %.2f ))+(1/2)'%(-slope, ['+','-'][intercept>0],
     abs(intercept)))
-    plt.plot(x, regression(x, intercept, slope)*(mmax-mmin)+mmin)
+    ax.plot(x, regression(x, intercept, slope)*(mmax-mmin)+mmin, label='approximation')
 
 def getThresholds(n):
     s = {(0,1)}
@@ -119,15 +122,15 @@ def getThresholds(n):
 def getFracs(n):
     return [float(s[0])/s[1] for s in getThresholds(n)]
 
-def drawLines(n, ymin, ymax):
+def drawLines(ax,n, ymin, ymax):
     s = getThresholds(n)
     print s
     for line in s:
         x = float(line[0])/line[1]
-        plt.text(x,0.1, r'$\frac{%d}{%d}$'%(line[0],line[1]), fontsize=15)
-        plt.plot((x, x), (ymin,ymax), 'r-')
+        ax.text(x,0.5, r'$\frac{%d}{%d}$'%(line[0],line[1]), fontsize=12)
+#       plt.plot((x, x), (ymin,ymax), 'r-')
         
-def drawFlatGraph(x, y):
+def drawFlatGraph(ax, x, y, label='data'):
     xx = []
     yy = []
     for i in range(0,len(x)-1):
@@ -135,28 +138,60 @@ def drawFlatGraph(x, y):
         yy.append(y[i])
         xx.append(x[i+1])
         yy.append(y[i])
-    plt.plot(xx, yy)
+    ax.plot(xx, yy, label=label)
 
 def func(x, a, M, b1, b2):
     return a+M/(1+np.exp(-(b1*x+b2)))
 
-def fitcurve(x, y, f):
+def fitcurve(ax, x, y, f):
     popt, pcov = curve_fit(f, np.array(x), np.array(y))
-    plt.plot(x, f(x, *popt), 'r-', label='fit')
-    print popt, pcov
-    
-        
-#Experiment for graphs
-#happyThreshold, happy, avgSteps = thresholdPlot(20,30, notifyEvery=5)
-#plt.plot(happyThreshold, avgSteps)
-#logisticregr(happyThreshold, avgSteps)
-#drawLines(8,0,5)
-#plt.show()
+    drawFlatGraph(ax, x, f(x, *popt), label='fit')
+    print 'a=%f, M=%f, b1=%f, b2=%f'%(popt[0],popt[1],popt[2],popt[3])
+    return popt
 
-happyThreshold, happy, avgSteps = atThreshold(40, order=1)
-drawFlatGraph(happyThreshold, happy)
-fitcurve(np.array(happyThreshold), np.array(happy), func)
-plt.show()
+def thplot():
+    plt.figure(1)
+    happyThreshold, happy, avgSteps = thresholdPlot(40, 20)
+    
+def fit():
+    happyThreshold, happy, avgSteps = atThreshold(5, order=1)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    ax.set_xlabel('threshold')
+    ax.set_ylabel('average happiness')
+    drawFlatGraph(ax, happyThreshold, happy, label='happiness')
+    popt = fitcurve(ax, np.array(happyThreshold), np.array(happy), func)
+    plt.title(r'$f(x)=%.2f+\frac{%.2f}{1+\exp(-(%.2fx %s %.2f))}$'%(popt[0],popt[1],
+              popt[2],['+','-'][popt[3] >= 0],popt[3]))
+    plt.legend()
+    plt.show()
+
+def regr():
+    fig =  plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('threshold')
+    ax.set_ylabel('average happiness')
+    happyThreshold, happy, avgSteps = atThreshold(50, notifyEvery)
+    logisticregr(ax, happyThreshold, avgSteps)
+    drawFlatGraph(ax, happyThreshold, avgSteps, label='data')
+    plt.legend()
+    plt.show()
+
+def phaseTrans():
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xlabel('threshold')
+    ax.set_ylabel('average happiness')
+    happyThreshold, happy, avgSteps = atThreshold(50, randomHouse=True)
+    drawFlatGraph(ax, happyThreshold, happy, label='random moving')
+    drawLines(ax,8,0,1)
+    plt.legend()
+    plt.show()
+
+#Experiment for graphs
+phaseTrans()
 
 #
 #grid = prc.GridPrice(8,8, typeNums=[20,20])
